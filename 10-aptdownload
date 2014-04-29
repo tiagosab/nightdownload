@@ -1,0 +1,14 @@
+#!/bin/bash
+
+apt=/usr/bin/apt-get
+
+# We do each operation twice in order to minimize risks of
+# temporary errors (I get lots of 505 here)
+
+$apt update
+$apt update
+$apt autoclean
+$apt -y --force-yes --download-only upgrade
+$apt -y --force-yes --download-only install
+$apt -y --force-yes --download-only upgrade
+$apt -y --force-yes --download-only install
