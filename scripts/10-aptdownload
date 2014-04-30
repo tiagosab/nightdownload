@@ -8,7 +8,7 @@ apt=/usr/bin/apt-get
 $apt update
 $apt update
 $apt autoclean
-$apt -y --force-yes --download-only upgrade
+$apt -y --force-yes --download-only dist-upgrade
 $apt -y --force-yes --download-only install
-$apt -y --force-yes --download-only upgrade
+$apt -y --force-yes --download-only dist-upgrade
 $apt -y --force-yes --download-only install
