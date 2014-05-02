@@ -1,0 +1,106 @@
+#!/usr/bin/python3
+
+import subprocess
+import os.path
+import sys
+import grp
+import pwd
+import glob
+
+
+class User(object):
+    pass
+
+
+class NoUserFound(Exception):
+    pass
+
+
+def getusers():
+    usernames = grp.getgrnam("nightdownload")[3]
+
+    if not usernames:
+        raise NoUserFound
+
+    users = []
+    for username in usernames:
+        u = User()
+        (u.login, u.passwd, u.uid,
+         u.gid, u.name, u.home, u.interpreter) = pwd.getpwnam(username)
+        users.append(u)
+
+    return users
+
+
+def run_as_user(uid, gid, func, *args):
+    ruid = os.getuid()
+    rgid = os.getgid()
+    os.setegid(gid)
+    os.seteuid(uid)
+    func(*args)
+    os.seteuid(ruid)
+    os.setegid(rgid)
+
+
+def wgetit(url, path, logfile):
+    wgetcommand = (['wget', '-c', '-nv',
+                    '-a', logfile,
+                    '-P', path,
+                    url])
+    print(' '.join(wgetcommand))
+    returncode = subprocess.call(wgetcommand)
+    if returncode == 0:
+        print("Success downloading file from %s" % filename)
+        status="done"
+    elif returncode in [3, 4]:
+        # File I/O Error or Network Error: try again later
+        print("Temporary error downloading file from %s" % filename)
+        status="temp-error"
+    else:
+        # Failure: remove the file, warn the user.
+        print("Permanent error downloading file from %s" % filename)
+        status="error"
+
+
+def download_fromfile(filename, logfile):
+    moveto = None
+    if os.path.isfile(filename):
+        with open(filename) as f:
+            url = f.readline().strip()
+            path = f.readline().strip()
+            # TODO: insert sanity checks
+        try:
+            status = wgetit(url, path, logfile)
+        except KeyboardInterrupt:
+            status = "interrupted"
+    return (filename, status)
+
+
+def postprocess(filename, download_status):
+    newname=filename
+    if download_status in [ "error", "done" ]:
+        removeddir=os.path.join(user.home, ".nightdownload", download_status)
+        newname=os.path.join(removeddir, filename)
+        if os.exists(os.path.join(removeddir, filename)):
+            x = 1
+            while os.exists("%s_%02d" % (newname, x)):
+                x+=1
+            removedname="%s_%02d" % (newname, x)
+        os.rename(filename, newname)
+    return (filename, download_status, newname)
+
+
+def download(user):
+    confdir = os.path.join(user.home, ".nightdownload/download")
+    confpattern = os.path.join(confdir, "*")
+    logfile = os.path.join(user.home, ".nightdownload.log")
+    results = []
+    for filename in glob.glob(confpattern):
+        status = postprocess(*download_fromfile(filename, logfile))
+        results.append(status)
+    return results
+
+
+if __name__=="__main__":
+    for user in getusers():
+        run_as_user(user.uid, user.gid, download, user)
