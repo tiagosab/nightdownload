@@ -50,15 +50,15 @@ def wgetit(url, path, logfile):
     print(' '.join(wgetcommand))
     returncode = subprocess.call(wgetcommand)
     if returncode == 0:
-        print("Success downloading file from %s" % filename)
+        print("Success downloading %s" % url)
         status="done"
     elif returncode in [3, 4]:
         # File I/O Error or Network Error: try again later
-        print("Temporary error downloading file from %s" % filename)
+        print("Temporary error downloading %s" % url)
         status="temp-error"
     else:
         # Failure: remove the file, warn the user.
-        print("Permanent error downloading file from %s" % filename)
+        print("Permanent error downloading %s" % url)
         status="error"
 
 
