@@ -7,7 +7,10 @@ apt=/usr/bin/apt-get
 
 $apt update
 $apt update
-$apt autoclean
+# Autoclean is disabled because when one gets Hashsum mismatch there
+# is no more list from the failed server and all downloaded packages
+# vanish. (See bug #624122)
+# $apt autoclean
 $apt -y --force-yes --download-only dist-upgrade
 $apt -y --force-yes --download-only install
 $apt -y --force-yes --download-only dist-upgrade
