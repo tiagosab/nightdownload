@@ -4,5 +4,5 @@ SHELL=/bin/sh
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 
 # m h dom mon dow user	command
-5  2    * * *   root    cd / && /usr/bin/nightdownload.sh
+5  2-5 * * *   root    cd / && /usr/bin/flock -n /tmp/ngdld.lck /usr/bin/nightdownload.sh
 #
